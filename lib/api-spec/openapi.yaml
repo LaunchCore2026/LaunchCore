@@ -3,20 +3,36 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: LaunchCore SEO Engine API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: crawls
+    description: Site crawl operations
+  - name: issues
+    description: SEO issue operations
+  - name: todos
+    description: SEO todo operations
+  - name: keywords
+    description: Keyword research operations
+  - name: leads
+    description: Lead generation operations
+  - name: backlinks
+    description: Backlink opportunity operations
+  - name: reports
+    description: Report operations
+  - name: dashboard
+    description: Dashboard summary operations
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +40,425 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get overall dashboard statistics
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /crawls:
+    get:
+      operationId: listCrawls
+      tags: [crawls]
+      summary: List all crawls
+      responses:
+        "200":
+          description: List of crawls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Crawl"
+    post:
+      operationId: startCrawl
+      tags: [crawls]
+      summary: Start a new site crawl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CrawlInput"
+      responses:
+        "201":
+          description: Crawl started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Crawl"
+
+  /crawls/{id}:
+    get:
+      operationId: getCrawl
+      tags: [crawls]
+      summary: Get crawl by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Crawl details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Crawl"
+        "404":
+          description: Not found
+
+  /crawls/{id}/summary:
+    get:
+      operationId: getCrawlSummary
+      tags: [crawls]
+      summary: Get crawl summary with stats
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Crawl summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrawlSummary"
+        "404":
+          description: Not found
+
+  /crawls/{id}/pages:
+    get:
+      operationId: getCrawlPages
+      tags: [crawls]
+      summary: Get crawled pages for a crawl
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of crawled pages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CrawlPage"
+
+  /crawls/{id}/issues:
+    get:
+      operationId: getCrawlIssues
+      tags: [issues]
+      summary: Get SEO issues for a crawl
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of SEO issues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SeoIssue"
+
+  /crawls/{id}/todos:
+    get:
+      operationId: getCrawlTodos
+      tags: [todos]
+      summary: Get SEO todos for a crawl
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of SEO todos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SeoTodo"
+
+  /crawls/{id}/report:
+    get:
+      operationId: getCrawlReport
+      tags: [reports]
+      summary: Get the report for a crawl
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Crawl report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "404":
+          description: Not found
+
+  /todos/{id}:
+    patch:
+      operationId: updateTodo
+      tags: [todos]
+      summary: Update todo status or details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SeoTodoUpdate"
+      responses:
+        "200":
+          description: Updated todo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeoTodo"
+        "404":
+          description: Not found
+
+  /reports/{id}:
+    get:
+      operationId: getReport
+      tags: [reports]
+      summary: Get report by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "404":
+          description: Not found
+
+  /keywords:
+    post:
+      operationId: startKeywordResearch
+      tags: [keywords]
+      summary: Start keyword research job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeywordResearchInput"
+      responses:
+        "201":
+          description: Keyword research job started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeywordJob"
+    get:
+      operationId: listKeywordJobs
+      tags: [keywords]
+      summary: List keyword research jobs
+      responses:
+        "200":
+          description: List of keyword jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/KeywordJob"
+
+  /keywords/{jobId}:
+    get:
+      operationId: getKeywordJob
+      tags: [keywords]
+      summary: Get keyword research job with results
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Keyword job with results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeywordJobDetail"
+        "404":
+          description: Not found
+
+  /leads:
+    get:
+      operationId: listLeads
+      tags: [leads]
+      summary: List all leads
+      responses:
+        "200":
+          description: List of leads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lead"
+    post:
+      operationId: searchLeads
+      tags: [leads]
+      summary: Start a lead search job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadSearchInput"
+      responses:
+        "201":
+          description: Lead search started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadSearchJob"
+
+  /leads/jobs:
+    get:
+      operationId: listLeadJobs
+      tags: [leads]
+      summary: List lead search jobs
+      responses:
+        "200":
+          description: List of lead search jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeadSearchJob"
+
+  /leads/{id}:
+    get:
+      operationId: getLead
+      tags: [leads]
+      summary: Get lead by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lead details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateLead
+      tags: [leads]
+      summary: Update lead status or details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadUpdate"
+      responses:
+        "200":
+          description: Updated lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "404":
+          description: Not found
+
+  /backlinks:
+    post:
+      operationId: startBacklinkDiscovery
+      tags: [backlinks]
+      summary: Start backlink opportunity discovery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BacklinkInput"
+      responses:
+        "201":
+          description: Backlink discovery job started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BacklinkJob"
+    get:
+      operationId: listBacklinkJobs
+      tags: [backlinks]
+      summary: List backlink discovery jobs
+      responses:
+        "200":
+          description: List of backlink jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BacklinkJob"
+
+  /backlinks/{jobId}:
+    get:
+      operationId: getBacklinkJob
+      tags: [backlinks]
+      summary: Get backlink job with opportunities
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Backlink job with results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BacklinkJobDetail"
+        "404":
+          description: Not found
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +469,545 @@ components:
       required:
         - status
 
+    DashboardStats:
+      type: object
+      required: [totalCrawls, completedCrawls, totalIssues, criticalIssues, totalTodos, pendingTodos, totalLeads, qualifiedLeads, totalKeywordJobs, totalBacklinkJobs]
+      properties:
+        totalCrawls:
+          type: integer
+        completedCrawls:
+          type: integer
+        totalIssues:
+          type: integer
+        criticalIssues:
+          type: integer
+        totalTodos:
+          type: integer
+        pendingTodos:
+          type: integer
+        totalLeads:
+          type: integer
+        qualifiedLeads:
+          type: integer
+        totalKeywordJobs:
+          type: integer
+        totalBacklinkJobs:
+          type: integer
+        recentCrawls:
+          type: array
+          items:
+            $ref: "#/components/schemas/Crawl"
+
+    CrawlInput:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+        maxPages:
+          type: integer
+          default: 50
+        externalProjectId:
+          type: ["string", "null"]
+        callbackUrl:
+          type: ["string", "null"]
+
+    Crawl:
+      type: object
+      required: [id, url, status, createdAt]
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        maxPages:
+          type: integer
+        pagesFound:
+          type: ["integer", "null"]
+        pagesProcessed:
+          type: ["integer", "null"]
+        errorMessage:
+          type: ["string", "null"]
+        externalProjectId:
+          type: ["string", "null"]
+        callbackUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: ["string", "null"]
+          format: date-time
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    CrawlSummary:
+      type: object
+      required: [crawl, issueCounts, todoCounts, topIssues]
+      properties:
+        crawl:
+          $ref: "#/components/schemas/Crawl"
+        issueCounts:
+          type: object
+          properties:
+            critical:
+              type: integer
+            high:
+              type: integer
+            medium:
+              type: integer
+            low:
+              type: integer
+          required: [critical, high, medium, low]
+        todoCounts:
+          type: object
+          properties:
+            p1:
+              type: integer
+            p2:
+              type: integer
+            p3:
+              type: integer
+            p4:
+              type: integer
+            total:
+              type: integer
+          required: [p1, p2, p3, p4, total]
+        topIssues:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeoIssue"
+
+    CrawlPage:
+      type: object
+      required: [id, crawlId, url, statusCode, createdAt]
+      properties:
+        id:
+          type: integer
+        crawlId:
+          type: integer
+        url:
+          type: string
+        statusCode:
+          type: ["integer", "null"]
+        redirectUrl:
+          type: ["string", "null"]
+        title:
+          type: ["string", "null"]
+        metaDescription:
+          type: ["string", "null"]
+        h1:
+          type: ["string", "null"]
+        canonical:
+          type: ["string", "null"]
+        robotsMeta:
+          type: ["string", "null"]
+        wordCount:
+          type: ["integer", "null"]
+        internalLinksCount:
+          type: ["integer", "null"]
+        externalLinksCount:
+          type: ["integer", "null"]
+        imagesCount:
+          type: ["integer", "null"]
+        imagesMissingAlt:
+          type: ["integer", "null"]
+        hasOpenGraph:
+          type: ["boolean", "null"]
+        hasSchema:
+          type: ["boolean", "null"]
+        hasAnalytics:
+          type: ["boolean", "null"]
+        hasPhoneLink:
+          type: ["boolean", "null"]
+        hasEmailLink:
+          type: ["boolean", "null"]
+        hasCta:
+          type: ["boolean", "null"]
+        crawlDepth:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    SeoIssue:
+      type: object
+      required: [id, crawlId, issueType, category, severity, affectedUrl, createdAt]
+      properties:
+        id:
+          type: integer
+        crawlId:
+          type: integer
+        issueType:
+          type: string
+        category:
+          type: string
+        severity:
+          type: string
+          enum: [critical, high, medium, low]
+        affectedUrl:
+          type: string
+        evidence:
+          type: ["string", "null"]
+        recommendation:
+          type: ["string", "null"]
+        businessImpact:
+          type: ["string", "null"]
+        estimatedEffort:
+          type: ["string", "null"]
+        confidenceScore:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    SeoTodo:
+      type: object
+      required: [id, crawlId, title, priority, category, status, createdAt]
+      properties:
+        id:
+          type: integer
+        crawlId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        targetUrl:
+          type: ["string", "null"]
+        priority:
+          type: string
+          enum: [P1, P2, P3, P4]
+        category:
+          type: string
+        exactAction:
+          type: ["string", "null"]
+        whyItMatters:
+          type: ["string", "null"]
+        expectedImpact:
+          type: ["string", "null"]
+        estimatedTimeMinutes:
+          type: ["integer", "null"]
+        implementationNotes:
+          type: ["string", "null"]
+        validationMethod:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [new, planned, in_progress, implemented, validated, ignored]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    SeoTodoUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [new, planned, in_progress, implemented, validated, ignored]
+        implementationNotes:
+          type: ["string", "null"]
+
+    Report:
+      type: object
+      required: [id, crawlId, createdAt]
+      properties:
+        id:
+          type: integer
+        crawlId:
+          type: integer
+        executiveSummary:
+          type: ["string", "null"]
+        biggestRevenueLeaks:
+          type: ["string", "null"]
+        quickWins:
+          type: ["string", "null"]
+        technicalSeo:
+          type: ["string", "null"]
+        localSeo:
+          type: ["string", "null"]
+        conversionIssues:
+          type: ["string", "null"]
+        mobileSpeedReadiness:
+          type: ["string", "null"]
+        competitorGap:
+          type: ["string", "null"]
+        actionPlan30Days:
+          type: ["string", "null"]
+        outreachEmail:
+          type: ["string", "null"]
+        overallScore:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    KeywordResearchInput:
+      type: object
+      required: [seedKeyword]
+      properties:
+        seedKeyword:
+          type: string
+        businessCategory:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        language:
+          type: string
+          default: en
+        country:
+          type: string
+          default: CA
+        crawlId:
+          type: ["integer", "null"]
+
+    KeywordJob:
+      type: object
+      required: [id, seedKeyword, status, createdAt]
+      properties:
+        id:
+          type: integer
+        seedKeyword:
+          type: string
+        businessCategory:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        language:
+          type: string
+        country:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        keywordsFound:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    Keyword:
+      type: object
+      required: [id, jobId, keyword, createdAt]
+      properties:
+        id:
+          type: integer
+        jobId:
+          type: integer
+        keyword:
+          type: string
+        volume:
+          type: ["integer", "null"]
+        cpc:
+          type: ["number", "null"]
+        competition:
+          type: ["number", "null"]
+        difficulty:
+          type: ["integer", "null"]
+        searchIntent:
+          type: ["string", "null"]
+        isLocalIntent:
+          type: ["boolean", "null"]
+        recommendedPageType:
+          type: ["string", "null"]
+        opportunityScore:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    KeywordJobDetail:
+      type: object
+      required: [job, keywords]
+      properties:
+        job:
+          $ref: "#/components/schemas/KeywordJob"
+        keywords:
+          type: array
+          items:
+            $ref: "#/components/schemas/Keyword"
+
+    LeadSearchInput:
+      type: object
+      required: [businessCategory, city]
+      properties:
+        businessCategory:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+          default: CA
+        limit:
+          type: integer
+          default: 20
+
+    LeadSearchJob:
+      type: object
+      required: [id, businessCategory, city, status, createdAt]
+      properties:
+        id:
+          type: integer
+        businessCategory:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        leadsFound:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    Lead:
+      type: object
+      required: [id, businessName, status, createdAt]
+      properties:
+        id:
+          type: integer
+        jobId:
+          type: ["integer", "null"]
+        businessName:
+          type: string
+        website:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        category:
+          type: ["string", "null"]
+        rating:
+          type: ["number", "null"]
+        reviewCount:
+          type: ["integer", "null"]
+        googleMapsUrl:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        leadScore:
+          type: ["integer", "null"]
+        status:
+          type: string
+          enum: [new, contacted, qualified, disqualified, converted]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    LeadUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [new, contacted, qualified, disqualified, converted]
+        notes:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+
+    BacklinkInput:
+      type: object
+      required: [domain]
+      properties:
+        domain:
+          type: string
+        crawlId:
+          type: ["integer", "null"]
+        city:
+          type: ["string", "null"]
+        niche:
+          type: ["string", "null"]
+
+    BacklinkJob:
+      type: object
+      required: [id, domain, status, createdAt]
+      properties:
+        id:
+          type: integer
+        domain:
+          type: string
+        city:
+          type: ["string", "null"]
+        niche:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        opportunitiesFound:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    BacklinkOpportunity:
+      type: object
+      required: [id, jobId, targetDomain, opportunityType, createdAt]
+      properties:
+        id:
+          type: integer
+        jobId:
+          type: integer
+        targetDomain:
+          type: string
+        targetUrl:
+          type: ["string", "null"]
+        opportunityType:
+          type: string
+        relevanceScore:
+          type: ["integer", "null"]
+        authorityScore:
+          type: ["integer", "null"]
+        difficultyScore:
+          type: ["integer", "null"]
+        contactEmail:
+          type: ["string", "null"]
+        contactPage:
+          type: ["string", "null"]
+        suggestedPitch:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [new, outreached, declined, acquired]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    BacklinkJobDetail:
+      type: object
+      required: [job, opportunities]
+      properties:
+        job:
+          $ref: "#/components/schemas/BacklinkJob"
+        opportunities:
+          type: array
+          items:
+            $ref: "#/components/schemas/BacklinkOpportunity"

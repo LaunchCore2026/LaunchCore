@@ -1,0 +1,422 @@
+Build a standalone SEO Intelligence & Lead Generation tool called “LaunchCore SEO Engine” that can integrate into an existing Laravel/Filament ecosystem.
+
+This must not be only a frontend prototype. It must include the real application mechanics: backend API, database schema, crawler engine, job queue architecture, SEO diagnosis engine, todo generation engine, backlink opportunity engine, keyword research engine, lead generator, and integration layer.
+
+Primary goal:
+Create a standalone service that analyzes websites, generates complete SEO diagnostics, creates precise SEO todo lists, discovers lead opportunities, finds keyword opportunities, and identifies real backlink opportunities. The tool must be able to communicate with a Laravel/Filament app through secure API endpoints and/or iframe embedding.
+
+Core architecture:
+- Build as a standalone full-stack application.
+- Include backend API endpoints.
+- Include persistent database models.
+- Include background job architecture for long-running tasks.
+- Include crawler mechanics.
+- Include integration-ready service classes for external APIs.
+- Include a minimal internal UI only if needed to test the workflows.
+- The Laravel/Filament ecosystem will remain the main system of record, but this tool should be able to run independently and sync data through APIs/webhooks.
+
+Preferred stack:
+- Use a robust backend framework suitable for Replit.
+- Use PostgreSQL or SQLite for development with a clear path to PostgreSQL production.
+- Use background jobs or a queue abstraction.
+- Use TypeScript if using Node.js.
+- If a frontend is included, keep it secondary and focused on testing the backend workflows.
+
+The tool must include these modules:
+
+1. Site crawler
+Create a crawler that accepts a root URL and crawls internal pages.
+
+Required crawler features:
+- Normalize domains and URLs.
+- Handle URLs without protocol.
+- Respect crawl limits.
+- Avoid duplicate URLs.
+- Stay within the same domain unless configured otherwise.
+- Fetch HTTP status codes.
+- Detect redirects.
+- Extract page title.
+- Extract meta description.
+- Extract H1 and H2 headings.
+- Extract canonical URL.
+- Extract robots meta tags.
+- Extract internal links.
+- Extract external links.
+- Extract image URLs and alt attributes.
+- Detect forms.
+- Detect phone links.
+- Detect email links.
+- Detect CTA-like buttons/links.
+- Detect analytics/tracking snippets.
+- Calculate word count.
+- Save crawled pages to database.
+- Save crawl status: pending, running, completed, failed.
+- Save crawl errors.
+
+2. SEO diagnosis engine
+After a crawl, generate structured SEO issues.
+
+Detect at minimum:
+- Missing title.
+- Title too short.
+- Title too long.
+- Duplicate titles.
+- Missing meta description.
+- Meta description too short.
+- Meta description too long.
+- Duplicate meta descriptions.
+- Missing H1.
+- Multiple H1s.
+- Missing canonical.
+- Broken internal links.
+- Broken external links if feasible.
+- 4xx pages.
+- 5xx pages.
+- Redirect chains if feasible.
+- Images missing alt text.
+- Thin content pages.
+- Non-indexable pages.
+- Missing Open Graph tags.
+- Missing schema markup.
+- Missing LocalBusiness schema for local businesses.
+- Pages too deep in crawl structure.
+- Missing contact signals.
+- Missing conversion CTA.
+- Missing tracking scripts.
+
+Each issue must have:
+- issue_type
+- category
+- severity: critical, high, medium, low
+- affected_url
+- evidence
+- recommendation
+- business_impact
+- estimated_effort
+- confidence_score
+
+3. SEO todo generation engine
+Generate a precise todo list from the SEO issues.
+
+Each todo must contain:
+- title
+- description
+- target_url
+- priority: P1, P2, P3, P4
+- category
+- exact_action
+- why_it_matters
+- expected_impact
+- estimated_time_minutes
+- implementation_notes
+- validation_method
+- status: new, planned, in_progress, implemented, validated, ignored
+
+Examples:
+- “Rewrite the title tag on /services/plumbing to include the primary service and city.”
+- “Add a clickable phone CTA above the fold on mobile.”
+- “Create a dedicated location page for emergency plumbing in Laval.”
+- “Add LocalBusiness schema to the homepage.”
+- “Compress hero image on homepage because it is likely hurting mobile speed.”
+- “Add internal links from the homepage to the three most important service pages.”
+
+4. Keyword research engine
+Create a service abstraction for keyword research.
+
+It should support:
+- seed keyword
+- business category
+- city/location
+- language
+- country
+- keyword suggestions
+- volume
+- CPC
+- competition
+- keyword difficulty if available
+- search intent classification
+- local intent detection
+- recommended page type
+- opportunity score
+
+Do not hardcode external API credentials. Use environment variables.
+
+Create integration-ready adapters for:
+- DataForSEO Keyword API
+- Google Ads Keyword Planner API, as future integration
+- manual/mock fallback for development
+
+5. SERP and competitor engine
+Create a service abstraction for SERP analysis.
+
+It should support:
+- query + location
+- top organic results
+- local pack detection if available
+- competitor domains
+- competitor page titles
+- competitor meta descriptions
+- content gap opportunities
+- local competitor gap
+
+Create integration-ready adapters for:
+- DataForSEO SERP API
+- SerpAPI as optional future adapter
+- mock fallback for development
+
+6. Lead generator
+Create a lead generation module similar in concept to Outscraper, but integration-ready.
+
+It should support:
+- search by business category
+- search by city/location
+- collect business name
+- website
+- phone
+- address
+- rating
+- review count
+- category
+- Google Maps URL if available
+- email if available
+- social links if available
+- lead status
+- lead score
+
+Create integration-ready adapters for:
+- Outscraper API
+- DataForSEO Business Data API
+- Google Places API as optional future adapter
+- mock fallback for development
+
+Lead scoring should consider:
+- has website or not
+- website SEO score
+- mobile/performance readiness placeholder
+- review count
+- rating
+- missing tracking
+- missing CTA
+- weak local SEO
+- keyword opportunity
+- backlink gap
+- estimated business potential
+
+7. Backlink opportunity engine
+Create a backlink opportunity discovery system focused on legitimate link acquisition, not spam.
+
+Opportunity types:
+- local citations
+- business directories
+- chamber of commerce listings
+- niche directories
+- competitor backlink replication
+- unlinked brand mentions
+- resource page outreach
+- broken link building
+- guest post opportunities
+- local sponsorship/partner opportunities
+
+Each backlink opportunity must contain:
+- target_domain
+- target_url
+- opportunity_type
+- relevance_score
+- authority_score placeholder
+- difficulty_score
+- contact_email if available
+- contact_page if available
+- suggested_pitch
+- status
+- notes
+
+Create integration-ready adapters for:
+- DataForSEO Backlinks API
+- Ahrefs API as future adapter
+- Semrush API as future adapter
+- Moz API as future adapter
+- Hunter.io for contact discovery
+- NeverBounce/ZeroBounce for email verification
+- mock fallback for development
+
+8. PageSpeed and performance engine
+Create a service abstraction for performance checks.
+
+It should support:
+- mobile score
+- desktop score
+- LCP
+- CLS
+- INP
+- FCP
+- performance opportunities
+- page URL
+
+Create adapter for:
+- Google PageSpeed Insights API
+- mock fallback for development
+
+9. Tracking detection engine
+Detect from HTML:
+- Google Analytics
+- Google Tag Manager
+- Meta Pixel
+- Google Ads conversion tag
+- Hotjar
+- Microsoft Clarity
+- HubSpot
+- Calendly
+- booking links
+- phone tracking links
+
+Generate issues and todos if important tracking is missing.
+
+10. AI recommendation engine
+Create a service abstraction for AI-generated recommendations.
+
+It should generate:
+- executive summary
+- biggest revenue leaks
+- quick wins
+- SEO action plan
+- outreach email
+- cold call script
+- backlink outreach pitch
+- client-friendly explanation
+
+Use only structured crawl/SEO data as input. Do not invent unsupported facts.
+
+Create adapter for:
+- OpenAI API
+- mock fallback for development
+
+11. Reporting engine
+Generate a complete diagnostic report for each site.
+
+Report sections:
+1. Executive Summary
+2. Biggest Revenue Leaks
+3. Quick Wins
+4. Technical SEO
+5. Local SEO
+6. Google Business Profile Readiness
+7. Website Conversion Issues
+8. Trust & Reputation
+9. Mobile/Speed Readiness
+10. Paid Ads Readiness
+11. Competitor Gap Snapshot
+12. Tracking & Follow-Up
+13. Recommended 30-Day Action Plan
+14. Recommended LaunchCore Plan
+15. SEO Todo List
+16. Backlink Opportunities
+17. Keyword Opportunities
+
+Reports should be stored in the database and retrievable through API.
+
+12. API endpoints for Laravel/Filament integration
+Create REST API endpoints with token authentication.
+
+Required endpoints:
+- POST /api/crawls/start
+- GET /api/crawls/{id}
+- GET /api/crawls/{id}/pages
+- GET /api/crawls/{id}/issues
+- GET /api/crawls/{id}/todos
+- GET /api/reports/{id}
+- POST /api/leads/search
+- GET /api/leads
+- GET /api/leads/{id}
+- POST /api/keywords/research
+- GET /api/keywords/{jobId}
+- POST /api/backlinks/opportunities
+- GET /api/backlinks/{jobId}
+- POST /api/webhooks/laravel/sync
+- GET /api/health
+
+Authentication:
+- Use API token auth.
+- Include signed request option for Laravel integration.
+- Do not expose external API keys to frontend.
+
+13. Webhook/event system
+When major jobs complete, send webhooks to the Laravel/Filament ecosystem.
+
+Events:
+- crawl.started
+- crawl.completed
+- crawl.failed
+- report.generated
+- todos.generated
+- lead.generated
+- lead.qualified
+- keyword_research.completed
+- backlink_opportunities.generated
+
+Webhook payload should include:
+- event
+- timestamp
+- external_project_id if provided
+- internal_id
+- status
+- summary
+- callback_url support
+
+14. Database schema
+Create database tables or models for:
+- sites
+- crawls
+- crawl_pages
+- crawl_links
+- crawl_assets
+- seo_issues
+- seo_todos
+- keyword_research_jobs
+- keyword_opportunities
+- serp_results
+- competitors
+- leads
+- backlink_opportunities
+- reports
+- integration_logs
+- webhook_deliveries
+- api_usage_logs
+
+15. Configuration
+Use environment variables for:
+- API token
+- database URL
+- DataForSEO credentials
+- Outscraper API key
+- Google PageSpeed API key
+- OpenAI API key
+- webhook signing secret
+- Laravel callback URL
+
+16. Development requirements
+- Include seed/mock data.
+- Include clear README.
+- Include setup commands.
+- Include example API requests.
+- Include example webhook payloads.
+- Include error handling.
+- Include input validation.
+- Include rate-limit awareness.
+- Include logs for integrations.
+- Include tests for core scoring/todo generation if possible.
+
+17. Product philosophy
+This tool is part of the LaunchCore ecosystem. It should not only show SEO data. It must convert SEO data into precise business actions.
+
+The key output is:
+- What is wrong?
+- Why does it matter?
+- What exact action should be taken?
+- How much impact can it have?
+- How hard is it?
+- How do we validate that it was fixed?
+- What backlink opportunities can improve authority?
+- What keyword opportunities can drive leads?
+- What should the business do this week?
+
+Build this as a real mechanics-first tool that can later be embedded in a Laravel/Filament dashboard through iframe or connected directly by API.
