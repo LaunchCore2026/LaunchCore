@@ -1,11 +1,12 @@
 import { Router, type IRouter } from "express";
-import { eq, desc, count, sql } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { db, crawlsTable, crawlPagesTable, seoIssuesTable, seoTodosTable, reportsTable } from "@workspace/db";
 import { StartCrawlBody, GetCrawlParams, GetCrawlSummaryParams, GetCrawlPagesParams, GetCrawlIssuesParams, GetCrawlTodosParams, GetCrawlReportParams } from "@workspace/api-zod";
 import { runCrawl } from "../lib/crawler";
 import { diagnosePages } from "../lib/seo-diagnosis";
 import { generateTodos } from "../lib/todo-generator";
 import { generateReport } from "../lib/report-generator";
+import { deliverCrawlCallback } from "../lib/callbacks";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -31,7 +32,6 @@ router.post("/crawls", async (req, res): Promise<void> => {
 
   res.status(201).json(crawl);
 
-  // Run crawl in background
   setImmediate(async () => {
     try {
       await db.update(crawlsTable).set({ status: "running" }).where(eq(crawlsTable.id, crawl.id));
@@ -105,10 +105,20 @@ router.post("/crawls", async (req, res): Promise<void> => {
       });
       await db.insert(reportsTable).values({ crawlId: crawl.id, ...reportData });
 
+      const completedAt = new Date();
       await db
         .update(crawlsTable)
-        .set({ status: "completed", completedAt: new Date(), pagesFound: crawledPages.length, pagesProcessed: crawledPages.length })
+        .set({ status: "completed", completedAt, pagesFound: crawledPages.length, pagesProcessed: crawledPages.length })
         .where(eq(crawlsTable.id, crawl.id));
+
+      await deliverCrawlCallback(callbackUrl, {
+        crawlId: crawl.id,
+        status: "completed",
+        url,
+        pagesFound: crawledPages.length,
+        pagesProcessed: crawledPages.length,
+        completedAt: completedAt.toISOString(),
+      });
 
       logger.info({ crawlId: crawl.id }, "Crawl completed");
     } catch (err) {
@@ -118,6 +128,13 @@ router.post("/crawls", async (req, res): Promise<void> => {
         .update(crawlsTable)
         .set({ status: "failed", errorMessage: msg })
         .where(eq(crawlsTable.id, crawl.id));
+
+      await deliverCrawlCallback(callbackUrl, {
+        crawlId: crawl.id,
+        status: "failed",
+        url,
+        errorMessage: msg,
+      });
     }
   });
 });
