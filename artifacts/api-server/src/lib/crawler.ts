@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import * as cheerio from "cheerio";
 import { logger } from "./logger";
 
@@ -30,6 +31,45 @@ export interface CrawledPage {
   internalLinks: string[];
 }
 
+function isPrivateIpv4(hostname: string): boolean {
+  const parts = hostname.split(".").map((part) => Number(part));
+  if (parts.length !== 4 || parts.some((part) => Number.isNaN(part) || part < 0 || part > 255)) return false;
+  const [a, b] = parts;
+  return (
+    a === 10 ||
+    a === 127 ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 169 && b === 254) ||
+    a === 0
+  );
+}
+
+function isBlockedHostname(hostname: string): boolean {
+  const normalized = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (!normalized) return true;
+  if (normalized === "localhost" || normalized.endsWith(".localhost")) return true;
+
+  const ipVersion = isIP(normalized);
+  if (ipVersion === 4) return isPrivateIpv4(normalized);
+  if (ipVersion === 6) {
+    return normalized === "::1" || normalized.startsWith("fc") || normalized.startsWith("fd") || normalized.startsWith("fe80");
+  }
+
+  return false;
+}
+
+function assertCrawlableUrl(url: string): void {
+  if (url.length > 2048) throw new Error("URL is too long");
+  const parsed = new URL(url);
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("Only http and https URLs can be crawled");
+  }
+  if (isBlockedHostname(parsed.hostname)) {
+    throw new Error("Refusing to crawl localhost or private network URL");
+  }
+}
+
 function normalizeUrl(url: string, base: string): string | null {
   try {
     if (url.startsWith("mailto:") || url.startsWith("tel:") || url.startsWith("javascript:") || url.startsWith("#")) {
@@ -37,6 +77,8 @@ function normalizeUrl(url: string, base: string): string | null {
     }
     const resolved = new URL(url, base);
     resolved.hash = "";
+    if (resolved.protocol !== "http:" && resolved.protocol !== "https:") return null;
+    if (isBlockedHostname(resolved.hostname)) return null;
     return resolved.href;
   } catch {
     return null;
@@ -91,6 +133,8 @@ export async function crawlPage(url: string, baseUrl: string, depth: number): Pr
   const baseDomain = getBaseDomain(baseUrl);
 
   try {
+    assertCrawlableUrl(url);
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
 
@@ -109,6 +153,7 @@ export async function crawlPage(url: string, baseUrl: string, depth: number): Pr
 
     if (response.redirected) {
       result.redirectUrl = response.url;
+      assertCrawlableUrl(response.url);
     }
 
     if (!response.ok || response.status >= 400) {
@@ -192,7 +237,9 @@ export async function runCrawl(
   onPage: (page: CrawledPage) => Promise<void>,
   onProgress: (processed: number, found: number) => Promise<void>,
 ): Promise<void> {
-  const normalizedRoot = addProtocol(rootUrl);
+  const normalizedRoot = addProtocol(rootUrl.trim());
+  assertCrawlableUrl(normalizedRoot);
+
   const baseDomain = getBaseDomain(normalizedRoot);
   const visited = new Set<string>();
   const queue: Array<{ url: string; depth: number }> = [{ url: normalizedRoot, depth: 0 }];
